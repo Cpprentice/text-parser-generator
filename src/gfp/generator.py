@@ -31,7 +31,7 @@ class ParserGenerator:
         ctx = ParserGenerator.RecursionContext(self, self.schema, class_template)
         class_ = str(ctx)
         for class_ in [class_]:
-            result = file_template.render({'classes': [class_]})
+            result = file_template.render({'classes': [class_], 'imports': self.schema.meta.imports})
             (self.target_folder / f'{self.schema.id}.py').write_text(result)
 
 
@@ -77,6 +77,7 @@ class ParserGenerator:
                     str(inner)
                     for inner in self.inners
                 ],
+                'instances': list(self.spec.instances.values()) if self.spec.instances is not None else []
                 # 'default_type': self.base.default_type,
                 # 'default_delimiter': self.base.default_delimiter,
 

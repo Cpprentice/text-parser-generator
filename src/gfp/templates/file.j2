@@ -1,5 +1,8 @@
 import io
 
+{% for import in imports -%}
+import {{ import }}
+{% endfor %}
 import gfp.cast
 from gfp.parser import GeneratedTextFileParser
 

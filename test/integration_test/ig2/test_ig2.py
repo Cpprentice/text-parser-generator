@@ -5,10 +5,10 @@ from pathlib import Path
 from linkml_runtime.loaders import yaml_loader
 
 from gfp.generator import typed_from_yaml, ParserGenerator
-from gfp.model3 import Schema, TypeSpec
+from gfp.model3 import Schema, TypeSpec, Attribute
 
 
-def fix_schema(schema: Schema):
+def fix_types_schema(schema: Schema):
 
     def traverse(obj):
         if hasattr(obj, 'types') and obj.types is not None:
@@ -21,11 +21,24 @@ def fix_schema(schema: Schema):
 
     traverse(schema)
 
+def fix_instances_schema(schema: Schema):
+    def traverse(obj):
+        if hasattr(obj, 'instances') and obj.instances is not None:
+            obj.instances = {
+                key: Attribute(id=key, **value)
+                for key, value in obj.instances.items()
+            }
+        if hasattr(obj, 'types') and obj.types is not None:
+            for subtype in obj.types.values():
+                traverse(subtype)
+    traverse(schema)
+
 
 def test_ig2():
     # conf = yaml_loader.load((Path(__file__).parent / 'schema.yaml').read_text(), Schema)
     conf: Schema = typed_from_yaml((Path(__file__).parent / 'schema.yaml').read_text(), Schema)
-    fix_schema(conf)
+    fix_types_schema(conf)
+    fix_instances_schema(conf)
     generator = ParserGenerator(conf)
     generator.run()
 

@@ -46,7 +46,11 @@ classes:
         inlined_as_list: false
         # inlined_as_dict: true
         range: TypeSpec
-
+      instances:
+        multivalued: true
+        inlined: true
+        inlined_as_list: false
+        range: Attribute
   TypeSpec:
     attributes:
       id:
@@ -70,6 +74,11 @@ classes:
         range: EnumSpec
         multivalued: true
         inlined_as_list: false
+      instances:
+        multivalued: true
+        inlined: true
+        inlined_as_list: false
+        range: Attribute
   EnumSpec:
     attributes:
       id:
@@ -84,6 +93,9 @@ classes:
         multivalued: true
         inlined_as_list: true
       file-extensions:
+        multivalued: true
+        inlined_as_list: true
+      imports:
         multivalued: true
         inlined_as_list: true
       license:
@@ -106,6 +118,7 @@ classes:
     attributes:
       id:
         range: id
+        identifier: true
       doc:
       contents:
       type:
@@ -138,6 +151,7 @@ classes:
         range: boolean
       consume:
         range: boolean
+      value:
 #  TypeSwitch:
 #    slot_usage:
 #      cases:

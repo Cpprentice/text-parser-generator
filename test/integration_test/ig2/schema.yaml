@@ -4,12 +4,44 @@ meta:
     default_delimiter: '(\\t|\\r\\n)'
     default_delimiter_repeating: false
     default_type: str
+    imports:
+      - pandas
 seq:
     - id: tables
       type: _TableType
       repeat: eos
 types:
     _TableType:
+        instances:
+          sub_table_lookup:
+            value: |-4
+                {
+                            sub_table.sub_table_name: {
+                                block.index: [
+                                    row.values
+                                    for row in block.rows
+                                ]
+                                for block in sub_table.blocks
+                            }
+                            for sub_table in self.sub_tables
+                        }
+          merged_rows:
+            value: |-4
+                [
+                            [*row.values, *[
+                              lookup[row.index]
+                              for lookup in self.sub_table_lookup.values()
+                            ]]
+                            for row in self.rows
+                        ]
+          merged_columns:
+            value: |-4
+                [*self.column_names, *[x.sub_table_name for x in self.sub_tables]]
+          index:
+            value: |-4
+                [row.index for row in self.rows]
+          frame:
+            value: pandas.DataFrame(self.merged_rows, columns=self.merged_columns, index=self.index)
         seq:
             - id: table_name
               delimiter: " +"

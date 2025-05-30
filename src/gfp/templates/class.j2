@@ -29,6 +29,13 @@ class {{ class_name }}(GeneratedTextFileParser):
         pass
         {% endfor %}
 
+    {% for instance in instances -%}
+    @property
+    def {{ instance.id }}(self):
+        return {{ instance.value }}
+
+    {% endfor %}
+
     {% for inner in inners -%}
     {{ inner | indent(4) }}
     {% endfor %}
