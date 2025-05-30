@@ -1,0 +1,180 @@
+id: parser-config-schema
+name: ParserConfigSchema
+prefixes:
+  gfp: http://example.com/gfp/
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+default_range: string
+default_prefix: gfp
+types:
+  id:
+    uri: gfp:id
+    base: str
+    pattern: "^_?[a-z][a-z0-9_]*$"
+  Identifier:
+    uri: gfp:Identifier
+    base: Bool
+    pattern: "^[a-z][a-z0-9_]*$"
+#  TypeRef:
+#    uri: gfp:TypeRef
+#    union_of:
+#      - range: TypeEnum
+#      - range:
+
+classes:
+  Schema:
+    tree_root: true
+    attributes:
+      id:
+        identifier: true
+        ifabsent: string(Schema)
+      meta:
+        range: MetaSpec
+      doc:
+      params:
+        multivalued: true
+        inlined_as_list: true
+        range: ParamSpec
+      seq:
+        multivalued: true
+        inlined_as_list: true
+        range: Attribute
+      types:
+        multivalued: true
+        inlined: true
+        inlined_as_list: false
+        # inlined_as_dict: true
+        range: TypeSpec
+
+  TypeSpec:
+    attributes:
+      id:
+        identifier: true
+      meta:
+        range: MetaSpec
+      params:
+        range: ParamSpec
+        multivalued: true
+        inlined_as_list: true
+      seq:
+        range: Attribute
+        multivalued: true
+        inlined_as_list: true
+      types:
+        range: TypeSpec
+        multivalued: true
+        inlined: true
+        inlined_as_list: false
+      enums:
+        range: EnumSpec
+        multivalued: true
+        inlined_as_list: false
+  EnumSpec:
+    attributes:
+      id:
+        identifier: true
+
+  MetaSpec:
+    attributes:
+      id:
+        range: id
+      title:
+      application:
+        multivalued: true
+        inlined_as_list: true
+      file-extensions:
+        multivalued: true
+        inlined_as_list: true
+      license:
+      encoding:
+      default_type:
+      default_delimiter:
+      default_delimiter_repeating:
+        range: boolean
+
+  ParamSpec:
+    attributes:
+      id:
+        range: id
+      type:
+        range: TypeEnum
+      doc:
+      enum:
+        pattern: "^([a-z][a-z0-9_]*::)*[a-z][a-z0-9_]*$"
+  Attribute:
+    attributes:
+      id:
+        range: id
+      doc:
+      contents:
+      type:
+        any_of:
+          - range: TypeEnum
+          - pattern: "^([a-zA-Z][a-zA-Z0-9_]*::)*_?[a-zA-Z][A-Za-z0-9_]*(\\(.+\\))?$"
+          - range: TypeSwitch
+      repeat:
+        range: RepeatEnum
+      repeat_expr:
+        any_of:
+          - range: string
+          - range: integer
+      repeat_until:
+      if_:
+      size:
+        any_of:
+          - range: string
+          - range: integer
+      cast:
+#        union_of:
+#          - CastEnum
+#          - CastSwitch
+        # range: CastEnum
+        any_of:
+          - range: CastEnum
+          - range: CastSwitch
+      delimiter:
+      delimiter_repeating:
+        range: boolean
+      consume:
+        range: boolean
+  TypeSwitch:
+    slot_usage:
+      cases:
+        any_of:
+          - range: TypeEnum
+          - pattern: "^([a-z][a-z0-9_]*::)*[a-z][a-z0-9_]*(\\(.+\\))?$"
+      switch_on:
+  CastSwitch:
+    slot_usage:
+      switch_on:
+      cases:
+        range: CastEnum
+slots:
+  switch_on:
+    range: string
+  cases:
+    multivalued: true
+    inlined_as_list: false
+enums:
+  CastEnum:
+    permissible_values:
+      int:
+      uint:
+      float:
+      number:
+      strip:
+      rstrip:
+      lstrip:
+  RepeatEnum:
+    permissible_values:
+      eos:
+      expr:
+      until:
+  TypeEnum:
+    permissible_values:
+      STR:
+      STRINT:
+      STRUINT:
+
+

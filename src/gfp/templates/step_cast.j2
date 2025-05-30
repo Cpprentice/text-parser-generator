@@ -1,0 +1,12 @@
+{#
+    We assume that step.cast has been validated on schema parse level -
+    otherwise this is a security risk
+    Moreover, the as_dict result of an enum value is a little strange that's why we
+    access step.cast._code.text to get the enum value text
+    using pydantic now uses value instead which is a lot cleaner
+#}
+{%- if step.cast is defined and step.cast is not none -%}
+gfp.cast.{{ step.cast.value }}_({% include 'step_action.j2' %})
+{%- else -%}
+{% include 'step_action.j2' %}
+{%- endif -%}

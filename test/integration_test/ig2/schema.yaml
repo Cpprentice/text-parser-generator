@@ -1,0 +1,112 @@
+id: IG2
+meta:
+    title: IG2
+    default_delimiter: '(\\t|\\r\\n)'
+    default_delimiter_repeating: false
+    default_type: str
+seq:
+    - id: tables
+      type: _TableType
+      repeat: eos
+types:
+    _TableType:
+        seq:
+            - id: table_name
+              delimiter: " +"
+              delimiter_repeating: true
+            - id: column_count
+              # type: uint
+              delimiter: ' +'
+              delimiter_repeating: true
+              cast: uint
+            - id: row_count
+              # type: str
+              cast: uint
+              delimiter: ' +'
+              delimiter_repeating: true
+            - id: sub_table_count
+              # type: str
+              cast: uint
+              # delimiter: '(\\t|\\n)'
+            - id: column_names
+              # delimiter: '(\\t|\\n)'
+              cast: rstrip
+              repeat: expr
+              repeat_expr: column_count
+            - id: _header_line_1_start
+              # delimiter: '(\\t|\\n)'
+            - id: column_types
+              # delimiter: '(\\t|\\n)'
+              cast: rstrip
+              repeat: expr
+              repeat_expr: column_count
+            - id: _header_line_2_start
+              # delimiter: '(\\t|\\n)'
+            - id: _column_limits
+              # delimiter: '(\\t|\\n)'
+              # cast: rstrip
+              repeat: expr
+              repeat_expr: column_count
+            - id: _content_start_newline
+              contents: '\r\n'
+            - id: rows
+              type: _RowType
+              repeat: expr
+              repeat_expr: row_count
+            - id: sub_tables
+              type: _SubTableType
+              repeat: expr
+              repeat_expr: sub_table_count
+            - id: _table_end_newline
+              contents: '\r\n\r\n'
+        types:
+            _RowType:
+                seq:
+                    - id: index
+                      # delimiter: '(\\t|\\n)'
+                      cast: uint
+                    - id: values
+                      # delimiter: '(\\t|\\n)'
+                      repeat: expr
+                      repeat_expr: parent.column_count
+            _SubTableType:
+                seq:
+                    - id: sub_table_name
+                      delimiter: '\\t'
+                    - id: _sub_table_type
+                      delimiter: '\\r\\n'
+                    - id: blocks
+                      type: _SubTableBlockType
+                      repeat: expr
+                      repeat_expr: parent.row_count
+                    - id: _lf
+                      contents: '\r\n'
+                types:
+                    _SubTableBlockType:
+                        seq:
+                            - id: index
+                              cast: uint
+                              delimiter: '\\t'
+                            - id: row_count
+                              cast: uint
+                              delimiter: ' '
+                            - id: column_count
+                              cast: uint
+                              delimiter: '\\r\\n'
+                            - id: rows
+                              type: _SubTableRowType
+                              repeat: expr
+                              repeat_expr: row_count
+                            - id: _lf
+                              contents: '\r\n'
+                        types:
+                            _SubTableRowType:
+                                seq:
+                                    - id: values
+                                      cast: number
+                                      repeat: expr
+                                      repeat_expr: parent.column_count
+                                      delimiter: ' +'
+                                      delimiter_repeating: true
+                                    - id: _lf
+                                      contents: '\r\n'

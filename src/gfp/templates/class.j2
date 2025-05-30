@@ -1,0 +1,28 @@
+class {{ class_name }}(GeneratedTextFileParser):
+
+    def __init__(self, text_stream: io.TextIOBase, parent: GeneratedTextFileParser = None, encoding: str = None):
+        super().__init__(text_stream, parent, encoding)
+        self._read()
+
+    def _read(self):
+        {%- for step in steps -%}
+        {% include 'step.j2' -%}
+        {#
+        {% macro step() %}{% include 'step.j2' %}{% endmacro %}
+        {{ step() | indent(4, True) }}
+
+        {% if step.type == "WSTSTRDEL" -%}
+        self.{{ step.name }}, delimiter = self.read_till_any_delimiter({{ step.delimiters }})
+        {% elif step.type == "str" -%}
+        self.{{ step.name }} = self._parse_delimited_string("{{ step.delimiter }}")
+        {%- else -%}
+        self.{{ step.name }} = str({{ fqdn }}.{{ step.type }}(self._io))
+        {%- endif -%}
+        #}
+        {%- else -%}
+        pass
+        {% endfor %}
+
+    {% for inner in inners -%}
+    {{ inner | indent(4) }}
+    {% endfor %}
