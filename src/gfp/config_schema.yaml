@@ -112,7 +112,7 @@ classes:
         any_of:
           - range: TypeEnum
           - pattern: "^([a-zA-Z][a-zA-Z0-9_]*::)*_?[a-zA-Z][A-Za-z0-9_]*(\\(.+\\))?$"
-          - range: TypeSwitch
+          # - range: TypeSwitch
       repeat:
         range: RepeatEnum
       repeat_expr:
@@ -138,24 +138,35 @@ classes:
         range: boolean
       consume:
         range: boolean
-  TypeSwitch:
-    slot_usage:
-      cases:
-        any_of:
-          - range: TypeEnum
-          - pattern: "^([a-z][a-z0-9_]*::)*[a-z][a-z0-9_]*(\\(.+\\))?$"
-      switch_on:
+#  TypeSwitch:
+#    slot_usage:
+#      cases:
+#        any_of:
+#          - range: TypeEnum
+#          - pattern: "^([a-z][a-z0-9_]*::)*[a-z][a-z0-9_]*(\\(.+\\))?$"
+#      switch_on:
   CastSwitch:
-    slot_usage:
+    attributes:
       switch_on:
+        range: string
       cases:
+        multivalued: true
+        inlined: true
+        inlined_as_list: false
+        range: CastSwitchOption
+  CastSwitchOption:
+    attributes:
+      key:
+        range: string
+        identifier: true
+      cast:
         range: CastEnum
-slots:
-  switch_on:
-    range: string
-  cases:
-    multivalued: true
-    inlined_as_list: false
+#slots:
+#  switch_on:
+#    range: string
+#  cases:
+#    multivalued: true
+#    inlined_as_list: false
 enums:
   CastEnum:
     permissible_values:
@@ -166,6 +177,8 @@ enums:
       strip:
       rstrip:
       lstrip:
+      bool:
+      quoted:
   RepeatEnum:
     permissible_values:
       eos:

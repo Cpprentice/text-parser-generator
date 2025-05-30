@@ -27,7 +27,7 @@ def test_ig2():
     conf: Schema = typed_from_yaml((Path(__file__).parent / 'schema.yaml').read_text(), Schema)
     fix_schema(conf)
     generator = ParserGenerator(conf)
-    # generator.run()
+    generator.run()
 
     spec = importlib.util.spec_from_file_location('schema', generator.target_folder / 'IG2.py')
     schema_module = importlib.util.module_from_spec(spec)
@@ -44,6 +44,14 @@ def test_ig2():
     with open('parsed.json', 'w') as stream:
         json.dump(schema_dict, stream, indent=4)
     _ = 42
+
+    all_column_types = {
+        table_type
+        for table in schema_dict['tables']
+        for table_type in table['column_types']
+    }
+    print(all_column_types)
+
     # TODO currently the cell values are not type cast or stripped or anything - Guess it would make sense
     #  to remove cast and use type and then built the conversion functionalities in the type
     #  like int, number, etc. There is also a way in kaitai to have a switch-on <expr> with cases for the type

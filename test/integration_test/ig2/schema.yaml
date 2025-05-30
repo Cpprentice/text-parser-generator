@@ -69,6 +69,16 @@ types:
                       # delimiter: '(\\t|\\n)'
                       repeat: expr
                       repeat_expr: parent.column_count
+                      cast:
+                        switch_on: self.parent.column_types[_]
+                        cases:
+                          MASTER_VALUE: number
+                          MASTER_FLAG: bool
+                          MASTER_STRING: quoted
+                          MASTER_STRXLAT: quoted
+                          Mission_Flag: bool
+                          Mission_String: quoted
+                          Mission_StrXlat: quoted
             _SubTableType:
                 seq:
                     - id: sub_table_name
