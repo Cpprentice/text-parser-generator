@@ -1,0 +1,5 @@
+{% for step in steps + instances -%}{%- if step.cast is defined and step.cast.switch_on is defined -%}
+self._{{ step.name }}_cast_lookup = self._create_cast_lookup({{ step.cast.cases }})
+{% elif step.type is defined and step.type.switch_on is defined -%}
+self._{{ step.name }}_type_lookup = self._create_type_lookup({{ step.type.cases }})
+{%- endif %}{% endfor %}

@@ -1,10 +1,11 @@
 import io
+from functools import cached_property
 
 {% for import in imports -%}
 import {{ import }}
 {% endfor %}
 import gfp.cast
-from gfp.parser import GeneratedTextFileParser
+from gfp.parser import UpdatedGeneratedTextFileParser
 
 
 {% for class_ in classes %}

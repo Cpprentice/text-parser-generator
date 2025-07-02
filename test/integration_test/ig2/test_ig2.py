@@ -8,43 +8,12 @@ from gfp.generator import typed_from_yaml, ParserGenerator
 from gfp.model3 import Schema, TypeSpec, Attribute
 
 
-def fix_types_schema(schema: Schema):
-
-    def traverse(obj):
-        if hasattr(obj, 'types') and obj.types is not None:
-            obj.types = {
-                key: TypeSpec(id=key, **value)
-                for key, value in obj.types.items()
-            }
-            for subtype in obj.types.values():
-                traverse(subtype)
-
-    traverse(schema)
-
-def fix_instances_schema(schema: Schema):
-    def traverse(obj):
-        if hasattr(obj, 'instances') and obj.instances is not None:
-            obj.instances = {
-                key: Attribute(id=key, **value)
-                for key, value in obj.instances.items()
-            }
-        if hasattr(obj, 'types') and obj.types is not None:
-            for subtype in obj.types.values():
-                traverse(subtype)
-    traverse(schema)
-
-
 def test_ig2():
     # conf = yaml_loader.load((Path(__file__).parent / 'schema.yaml').read_text(), Schema)
     conf: Schema = typed_from_yaml((Path(__file__).parent / 'schema.yaml').read_text(), Schema)
-    fix_types_schema(conf)
-    fix_instances_schema(conf)
     generator = ParserGenerator(conf)
     generator.run()
-
-    spec = importlib.util.spec_from_file_location('schema', generator.target_folder / 'IG2.py')
-    schema_module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(schema_module)
+    schema_module = generator.load_module()
 
     # stream = io.StringIO('Name  2 1 24\tABC   \tDEF    \nName2   1 2 3\tGHI  \tJKL\n')
     file_path = Path(r'D:\SteamLibrary\steamapps\common\Industry Giant 2\config\Config.gen')

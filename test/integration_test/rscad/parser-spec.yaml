@@ -1,0 +1,211 @@
+id: RSCADDefinition
+meta:
+  title: RSCAD FX2.4 Definition Parser
+  default_delimiter: '\\r\\n'
+  default_delimiter_repeating: false
+  default_type: str
+  imports:
+    - itertools
+seq:
+  - id: _header
+    contents: "Component Builder "
+  - id: builder_version
+  - id: _raw_sections
+    repeat: eos
+    # delimiter: '(\\r\\n[ \\t]*)+[A-Z-]+:\r\n'
+    delimiter: '(?<=\r\n)[A-Z_-]+:\r\n'
+    consume: false
+    type: substream
+instances:
+  section_count:
+    value: len(self._raw_sections)
+  sections:
+    io: self._raw_sections[_]
+    repeat: expr
+    repeat_expr: section_count
+    type: _SectionType
+types:
+  _SectionType:
+    seq:
+      - id: section_name
+        delimiter: ':\\r\\n'
+      - id: body
+        type:
+          switch_on: section_name
+          cases:
+            PARAMETERS: _ParameterBodyType
+            GRAPHICS: _GraphicBodyType
+            default: _StringBodyType
+    types:
+      _GraphicBodyType:
+        seq:
+          - id: statements
+            type: _StatementType
+            repeat: eos
+        instances:
+          all_conditions:
+            value: "[y for x in self.statements if x.statement_type == 'If' for y in x.statement_body._total_conditions]"
+        types:
+          _StatementType:
+            seq:
+              - id: statement_type
+                delimiter: '(?<=[A-Za-z])[^A-Za-z_]'
+                cast: strip
+                consume: false
+              - id: statement_body
+                type:
+                  switch_on: statement_type.lower()
+                  cases:
+                    default: _StringType
+                    if: _IfType
+                    else: _ElseType
+                    elseif: _ElseIfType
+                    box: _ShapeType
+                    line: _ShapeType
+
+            types:
+              _ShapeType:
+                seq:
+                  - id: _text
+                    cast: strip
+                    delimiter: '(\r\n|(?<=\)) )'
+                instances:
+                  _pieces:
+                    value: self._text[1:-1].split(',')
+                  x0:
+                    value: int(self.pieces[0])
+                  y0:
+                    value: int(self.pieces[1])
+                  x1:
+                    value: int(self.pieces[2])
+                  y1:
+                    value: int(self.pieces[3])
+              _IfType:
+                seq:
+                  - id: _condition
+                    delimiter: '(\r\n|(?<=\)) )'
+                  - id: _inner_statements
+                    type: RSCADDefinition._SectionType._GraphicBodyType._StatementType
+                    repeat: until
+                    repeat_until: self._inner_statements[-1].statement_type == 'EndIf'
+                instances:
+                  _breakpoints:
+                    value: "[0] + [idx for idx, x in enumerate(self._inner_statements) if x.statement_type in {'Else', 'ElseIf'}]"
+                  _slices:
+                    value: "[slice(*pair) for pair in itertools.pairwise(self._breakpoints)] + [slice(self._breakpoints[-1], None)]"
+                  conditions:
+                    value: "[self._condition] + [self._inner_statements[idx].statement_body._condition for idx in self._breakpoints[1:]]"
+                  statement_blocks:
+                    value: "[self._inner_statements[s] for s in self._slices]"
+                  _inner_conditions:
+                    value: "[y for x in self._inner_statements if x.statement_type == 'If' for y in x.statement_body._total_conditions]"
+                  _total_conditions:
+                    value: "self.conditions + self._inner_conditions"
+#                  _initial_block_stop_index:
+#                    value: "min(idx for idx, x in enumerate(self._inner_statements) if x.statement_type in {'ElseIf', 'Else'})"
+#                  conditions:
+#                    value: "[self._condition] + [x.statement_body._condition for x in self._inner_statements if x.statement_type in {'ElseIf', 'Else'}]"
+#                  statement_blocks:
+#                    value: "self._inner_statements[:self._initial_block_stop_index] + [x.statement_body._inner_statements for x in self._inner_statements if x.statement_type in {'ElseIf', 'Else'}]"
+              _ElseIfType:
+                seq:
+                  - id: _condition
+                    delimiter: '(\r\n|(?<=\)) )'
+#                  - id: _inner_statements
+#                    type: RSCADDefinition._SectionType._GraphicBodyType._StatementType
+#                    repeat: until
+#                    repeat_until: self._inner_statements[-1].statement_type == 'EndIf'
+              _ElseType:
+                seq:
+                  - id: _crlf
+#                  - id: _inner_statements
+#                    type: RSCADDefinition._SectionType._GraphicBodyType._StatementType
+#                    repeat: until
+#                    repeat_until: self._inner_statements[-1].statement_type == 'EndIf'
+                instances:
+                  _condition:
+                    value: '"True"'
+              _StringType:
+                seq:
+                  - id: text
+                    delimiter: '(\\r\\n|(?<=\\)) )'
+      _ParameterBodyType:
+        seq:
+          - id: parameter_groups_raw
+            delimiter: '(?<=\\r\\n) {2,}SECTION:'
+            consume: false
+            type: substream
+            repeat: eos
+        instances:
+          group_count:
+            value: len(self.parameter_groups_raw)
+          parameter_groups:
+            type: _ParameterGroupType
+            io: self.parameter_groups_raw[_]
+            repeat: expr
+            repeat_expr: group_count
+        types:
+          _ParameterGroupType:
+            seq:
+              - id: _spaces
+                delimiter: 'S'
+                consume: false
+              - id: _header
+                contents: 'SECTION:'
+              - id: _spaces
+                delimiter: '"'
+              - id: group_name
+                delimiter: '"'
+              - id: condition
+                cast: strip
+              - id: lines
+                type: _ParameterLineType
+                repeat: eos
+            types:
+              _ParameterLineType:
+                seq:
+                  - id: _spaces
+                    delimiter: '[A-Za-z]'
+                    consume: false
+                  - id: name
+                    delimiter: ' {3,}'
+                    delimiter_repeating: true
+                  - id: description
+                    delimiter: '(?<=") {3,}'
+                    delimiter_repeating: true
+                    cast: quoted
+                  - id: unit
+                    delimiter: ' {3,}'
+                    delimiter_repeating: true
+                    cast: quoted
+                  - id: digit_count
+                    delimiter: ' {3,}'
+                    delimiter_repeating: true
+                    cast: uint
+                  - id: parameter_type
+                    delimiter: ' {3,}'
+                    delimiter_repeating: true
+                  - id: default_value
+                    delimiter: '( {3,}|\r\n)'
+                    delimiter_repeating: true
+                  - id: min_value
+                    delimiter: '((?<=[^ ]) {3,}|\r\n)'
+                    delimiter_repeating: true
+                    cast: strip
+                    if_: self._last_delimiter != '\r\n'
+                  - id: max_value
+                    delimiter: '( {3,}|\r\n)'
+                    delimiter_repeating: true
+                    if_: self._last_delimiter != '\r\n'
+                  - id: condition
+                    delimiter: '\r\n'
+                    cast: strip
+                    if_: self._last_delimiter != '\r\n'
+      _StringBodyType:
+        seq:
+          - id: lines
+            repeat: eos
+
+
+
+    

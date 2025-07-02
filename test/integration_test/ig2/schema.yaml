@@ -100,9 +100,9 @@ types:
                     - id: values
                       # delimiter: '(\\t|\\n)'
                       repeat: expr
-                      repeat_expr: parent.column_count
+                      repeat_expr: _parent.column_count
                       cast:
-                        switch_on: self.parent.column_types[_]
+                        switch_on: self._parent.column_types[_]
                         cases:
                           MASTER_VALUE: number
                           MASTER_FLAG: bool
@@ -120,7 +120,7 @@ types:
                     - id: blocks
                       type: _SubTableBlockType
                       repeat: expr
-                      repeat_expr: parent.row_count
+                      repeat_expr: _parent.row_count
                     - id: _lf
                       contents: '\r\n'
                 types:
@@ -147,7 +147,7 @@ types:
                                     - id: values
                                       cast: number
                                       repeat: expr
-                                      repeat_expr: parent.column_count
+                                      repeat_expr: _parent.column_count
                                       delimiter: ' +'
                                       delimiter_repeating: true
                                     - id: _lf

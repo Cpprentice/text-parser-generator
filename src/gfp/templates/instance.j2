@@ -1,0 +1,4 @@
+{#
+    This is a convenience wrapper for step_repeat in case of an instance
+#}
+{% set is_instance = True %}{% set step = instance %}{%- include 'step_repeat.j2' %}

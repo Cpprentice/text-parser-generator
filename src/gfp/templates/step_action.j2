@@ -6,8 +6,8 @@
 {% include 'step_action_contents.j2' %}
 {%- elif step.type == 'str' -%}
 {% include 'step_action_str.j2' %}
-{%- elif step.type == 'troll' -%}
-{% include 'step_action_troll.j2' %}
+{%- elif step.type == 'substream' -%}
+{% include 'step_action_substream.j2' %}
 {%- else -%}
 {% include 'step_action_subtype.j2' %}
 {%- endif -%}

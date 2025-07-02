@@ -1,0 +1,3 @@
+        {%- for step in steps %}
+        self.{{ step.name }} = {% if step.default is not none %}{{ step.default }}{% else %}None{% endif %}
+        {%- endfor %}

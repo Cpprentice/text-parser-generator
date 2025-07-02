@@ -1,38 +1,30 @@
-class {{ class_name }}(GeneratedTextFileParser):
+class {{ class_name }}(UpdatedGeneratedTextFileParser):
 
-    def __init__(self, text_stream: io.TextIOBase, parent: GeneratedTextFileParser = None, encoding: str = None):
+    def __init__(self, text_stream: io.TextIOBase, parent: UpdatedGeneratedTextFileParser = None, encoding: str = None):
         super().__init__(text_stream, parent, encoding)
-        {% for step in steps -%}{%- if step.cast is defined and step.cast.switch_on is defined -%}
-        self._{{ step.name }}_cast_lookup = {
-            {% for key, value in step.cast.cases.items() %}'{{ key }}': gfp.cast.{{ value }}_,
-            {% endfor %}
-        }
-        {%- endif %}{% endfor %}
+        {% include 'step_lookup.j2' %}
+        {% include 'step_defaults.j2' %}
         self._read()
 
     def _read(self):
-        {%- for step in steps -%}
-        {% include 'step.j2' -%}
-        {#
-        {% macro step() %}{% include 'step.j2' %}{% endmacro %}
-        {{ step() | indent(4, True) }}
-
-        {% if step.type == "WSTSTRDEL" -%}
-        self.{{ step.name }}, delimiter = self.read_till_any_delimiter({{ step.delimiters }})
-        {% elif step.type == "str" -%}
-        self.{{ step.name }} = self._parse_delimited_string("{{ step.delimiter }}")
-        {%- else -%}
-        self.{{ step.name }} = str({{ fqdn }}.{{ step.type }}(self._io))
-        {%- endif -%}
-        #}
+        {%- for step, raw_step in zip(rendered_steps, steps) -%}
+        {% if raw_step.if_ is not none -%}
+        if {{ raw_step.if_ }}:
+            {{ step | indent(12) }}
+        {% else %}
+        {{ step | indent(8) }}
+        {% endif %}
         {%- else -%}
         pass
         {% endfor %}
 
-    {% for instance in instances -%}
-    @property
+    {% for rendered_instance, instance in zip(rendered_instances, instances) -%}
+    {% if instance.type.root == 'substream' or instance.io is not none %}@cached_property{% else %}@property{% endif%}
     def {{ instance.id }}(self):
-        return {{ instance.value }}
+        {% if instance.value is defined and instance.value is not none %}return {{ instance.value }}{% else -%}
+        {{ rendered_instance | indent(8) }}
+        return {{ instance.id }}
+        {% endif %}
 
     {% endfor %}
 

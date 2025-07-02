@@ -124,8 +124,8 @@ classes:
       type:
         any_of:
           - range: TypeEnum
-          - pattern: "^([a-zA-Z][a-zA-Z0-9_]*::)*_?[a-zA-Z][A-Za-z0-9_]*(\\(.+\\))?$"
-          # - range: TypeSwitch
+          - pattern: "^(_?[a-zA-Z][a-zA-Z0-9_]*\\.)*_?[a-zA-Z][A-Za-z0-9_]*(\\(.+\\))?$"
+          - range: TypeSwitch
       repeat:
         range: RepeatEnum
       repeat_expr:
@@ -152,13 +152,33 @@ classes:
       consume:
         range: boolean
       value:
-#  TypeSwitch:
-#    slot_usage:
-#      cases:
+      io:
+      default:
+#      optional:
+#        range: boolean
+#      optional_delimiter:
+  TypeSwitch:
+    attributes:
+      cases:
+        multivalued: true
+        inlined: true
+        inlined_as_list: false
+        range: TypeSwitchOption
 #        any_of:
 #          - range: TypeEnum
 #          - pattern: "^([a-z][a-z0-9_]*::)*[a-z][a-z0-9_]*(\\(.+\\))?$"
-#      switch_on:
+      switch_on:
+        range: string
+  TypeSwitchOption:
+    attributes:
+      key:
+        range: string
+        identifier: true
+      type_:
+        any_of:
+          - range: TypeEnum
+          - pattern: "^(_?[a-zA-Z][A-Za-z0-9_]*\\.)*_?[A-Za-z][A-Za-z0-9_]*(\\(.+\\))?$"
+
   CastSwitch:
     attributes:
       switch_on:
@@ -200,8 +220,7 @@ enums:
       until:
   TypeEnum:
     permissible_values:
-      STR:
-      STRINT:
-      STRUINT:
+      # str:
+      substream:
 
 

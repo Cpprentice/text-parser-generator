@@ -6,24 +6,27 @@
 
     The enum for step.repeat unpacks a little weird so we have this strange access
 #}
-        {%- if step.repeat %}
-        self.{{ step.id }} = []
+{%- if step.repeat %}
+{% if not is_instance %}self.{% endif %}{{ step.id }} = []
 
-        {%- if step.repeat.value == 'eos' %}
-        try:
-            while True:
-                self.{{ step.id }}.append({% include 'step_cast.j2' %})
-        except EOFError:
-            _ = 42
-        {%- elif step.repeat.value == 'expr' %}
-        count = self.{{ step.repeat_expr }}
-        for _ in range(count):
-            self.{{ step.id }}.append({% include 'step_cast.j2' %})
-        {%- elif step.repeat.value == 'until' %}
-
-        {%- else %}
-        # {{ step.repeat }} not supported
-        {%- endif -%}
-        {%- else %}
-        self.{{ step.id }} = {% include 'step_cast.j2' %}
-        {%- endif -%}
+{%- if step.repeat.value == 'eos' %}
+try:
+    while True:
+        {% if not is_instance %}self.{% endif %}{{ step.id }}.append({% include 'step_cast.j2' %})
+except EOFError:
+    _ = 42
+{%- elif step.repeat.value == 'expr' %}
+count = self.{{ step.repeat_expr }}
+for _ in range(count):
+    {% if not is_instance %}self.{% endif %}{{ step.id }}.append({% include 'step_cast.j2' %})
+{%- elif step.repeat.value == 'until' %}
+while True:
+    {% if not is_instance %}self.{% endif %}{{ step.id }}.append({% include 'step_cast.j2' %})
+    if {{ step.repeat_until }}:
+        break
+{%- else %}
+# {{ step.repeat }} not supported
+{%- endif -%}
+{%- else %}
+{% if not is_instance %}self.{% endif %}{{ step.id }} = {% include 'step_cast.j2' %}
+{%- endif -%}
