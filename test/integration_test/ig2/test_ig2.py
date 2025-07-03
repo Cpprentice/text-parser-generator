@@ -4,14 +4,14 @@ from pathlib import Path
 
 from linkml_runtime.loaders import yaml_loader
 
-from gfp.generator import typed_from_yaml, ParserGenerator
-from gfp.model3 import Schema, TypeSpec, Attribute
+from text_parser_generator.generator import typed_from_yaml, TextParserGenerator
+from text_parser_generator.model import Schema, TypeSpec, Attribute
 
 
 def test_ig2():
     # conf = yaml_loader.load((Path(__file__).parent / 'schema.yaml').read_text(), Schema)
     conf: Schema = typed_from_yaml((Path(__file__).parent / 'schema.yaml').read_text(), Schema)
-    generator = ParserGenerator(conf)
+    generator = TextParserGenerator(conf)
     generator.run()
     schema_module = generator.load_module()
 

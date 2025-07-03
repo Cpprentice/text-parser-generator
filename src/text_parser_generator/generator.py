@@ -1,18 +1,17 @@
+import importlib.resources
 import importlib.util
-import io
 from pathlib import Path
 from types import ModuleType
-from typing import cast, Any, Generic, Type, TypeVar
+from typing import cast, Any, Generic, TypeVar
 
 from jinja2 import Template, Environment, FileSystemLoader
-from jsonasobj2 import as_dict
 from linkml_runtime.utils.yamlutils import from_yaml, YAMLRoot
 from pydantic import RootModel
 
-from gfp.model3 import Schema, TypeSpec, Attribute
+from text_parser_generator.model import ParserSchemaSpecification, Schema, TypeSpec, Attribute
 
 
-class ParserGenerator:
+class TextParserGenerator:
     def __init__(self, schema: Schema, target_folder = Path.cwd()):
         self.schema = schema
         self.target_folder = target_folder
@@ -20,20 +19,16 @@ class ParserGenerator:
         self.default_delimiter = schema.meta.default_delimiter
         self.default_delimiter_repeating = schema.meta.default_delimiter_repeating
 
-        # TODO this might be different for an installed package
-        #  check if we can use the package resources module?
-        template_dir = Path(__file__).parent / 'templates'
+        template_dir = importlib.resources.files('text_parser_generator') / 'templates'
         self.jinja2_env = Environment(loader=FileSystemLoader(template_dir))
         self.jinja2_env.globals.update(zip=zip)  # inject the zip method in templates
 
     def run(self):
-        # file_template = Template((Path(__file__).parent / 'file.j2').read_text())
         file_template = self.jinja2_env.get_template('file.j2')
-        # class_template = Template((Path(__file__).parent / 'class.j2').read_text())
         class_template = self.jinja2_env.get_template('class.j2')
         slot_template = self.jinja2_env.get_template('step.j2')
         instance_template = self.jinja2_env.get_template('instance.j2')
-        ctx = ParserGenerator.RecursionContext(self, self.schema, class_template, slot_template, instance_template)
+        ctx = TextParserGenerator.RecursionContext(self, self.schema, class_template, slot_template, instance_template)
         class_ = str(ctx)
         for class_ in [class_]:
             result = file_template.render({
@@ -65,7 +60,7 @@ class ParserGenerator:
             self.instance_template = instance_template
             self._parent = parent
             self.inners = [
-                ParserGenerator.RecursionContext(self.base, inner, class_template,
+                TextParserGenerator.RecursionContext(self.base, inner, class_template,
                                                  slot_template, instance_template, self.fqdn)
                 for inner in schema.types.values()
             ] if schema.types else []
@@ -80,9 +75,7 @@ class ParserGenerator:
             step_data = {
                 'steps': [
                     {
-                        # **as_dict(field),
                         **field.model_dump(),
-                        # 'type': field.type,
                         'delimiter': field.delimiter if field.delimiter is not None else self.base.default_delimiter,
                         'delimiter_repeating': (
                             field.delimiter_repeating
@@ -183,6 +176,11 @@ def fix_instances_schema(schema: Schema):
 AnyYAMLRoot = TypeVar('AnyYAMLRoot', bound=YAMLRoot)
 def typed_from_yaml(source: Any, _t: Generic[AnyYAMLRoot]) -> AnyYAMLRoot:
     result = cast(_t, from_yaml(source, _t))
-    fix_types_schema(result)
-    fix_instances_schema(result)
     return result
+
+
+def load_specification_from_yaml(source: Any) -> ParserSchemaSpecification:
+    spec = typed_from_yaml(source, ParserSchemaSpecification)
+    fix_types_schema(spec)
+    fix_instances_schema(spec)
+    return spec

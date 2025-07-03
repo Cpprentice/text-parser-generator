@@ -3,7 +3,7 @@ import re
 
 import pytest
 
-from gfp.parser import ByteQueue
+from text_parser_generator.parser import ByteQueue
 
 
 @pytest.fixture

@@ -1,6 +1,6 @@
-class {{ class_name }}(UpdatedGeneratedTextFileParser):
+class {{ class_name }}(GeneratedTextParser):
 
-    def __init__(self, text_stream: io.TextIOBase, parent: UpdatedGeneratedTextFileParser = None, encoding: str = None):
+    def __init__(self, text_stream: io.TextIOBase, parent: GeneratedTextParser = None, encoding: str = None):
         super().__init__(text_stream, parent, encoding)
         {% include 'step_lookup.j2' %}
         {% include 'step_defaults.j2' %}

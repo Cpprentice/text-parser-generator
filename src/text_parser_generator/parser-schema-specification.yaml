@@ -1,29 +1,29 @@
-id: parser-config-schema
-name: ParserConfigSchema
+id: parser-schema-specification-linkml-schema
+name: ParserSchemaSpecificationLinkmlSchema
 prefixes:
-  gfp: http://example.com/gfp/
+  tpg: http://example.com/tpg/
   linkml: https://w3id.org/linkml/
 imports:
   - linkml:types
 default_range: string
-default_prefix: gfp
+default_prefix: tpg
 types:
   id:
-    uri: gfp:id
+    uri: tpg:id
     base: str
     pattern: "^_?[a-z][a-z0-9_]*$"
   Identifier:
-    uri: gfp:Identifier
+    uri: tpg:Identifier
     base: Bool
     pattern: "^[a-z][a-z0-9_]*$"
 #  TypeRef:
-#    uri: gfp:TypeRef
+#    uri: tpg:TypeRef
 #    union_of:
 #      - range: TypeEnum
 #      - range:
 
 classes:
-  Schema:
+  ParserSchemaSpecification:
     tree_root: true
     attributes:
       id:

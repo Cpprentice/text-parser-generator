@@ -9,7 +9,7 @@
 {%- if step.cast.switch_on is defined -%}
 self._{{ step.name }}_cast_lookup[{{ step.cast.switch_on }}]({% include 'step_action.j2' %})
 {%- else -%}
-gfp.cast.{{ step.cast.value }}_({% include 'step_action.j2' %})
+text_parser_generator.cast.{{ step.cast.value }}_({% include 'step_action.j2' %})
 {%- endif -%}
 {%- else -%}
 {% include 'step_action.j2' %}

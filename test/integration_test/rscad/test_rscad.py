@@ -8,11 +8,11 @@ from types import ModuleType
 from typing import Any
 
 import pytest
-from simpleeval import simple_eval
+# from simpleeval import simple_eval
 
-from gfp.parser import re_search
-from gfp.generator import typed_from_yaml, ParserGenerator
-from gfp.model3 import Schema
+from text_parser_generator.parser import re_search
+from text_parser_generator.generator import typed_from_yaml, TextParserGenerator
+from text_parser_generator.model import Schema
 
 
 def get_test_case_root_dir() -> Path:
@@ -33,7 +33,7 @@ def get_test_file_ids() -> list[str]:
 def rscad_parser_module() -> ModuleType:
     with tempfile.TemporaryDirectory() as directory:
         conf: Schema = typed_from_yaml((Path(__file__).parent / 'parser-spec.yaml').read_text(), Schema)
-        generator = ParserGenerator(conf, target_folder=Path(directory))
+        generator = TextParserGenerator(conf, target_folder=Path(directory))
         generator.run()
         schema_module = generator.load_module()
         yield schema_module
@@ -41,7 +41,7 @@ def rscad_parser_module() -> ModuleType:
 
 def local_parser_module() -> ModuleType:
     conf: Schema = typed_from_yaml((Path(__file__).parent / 'parser-spec.yaml').read_text(), Schema)
-    generator = ParserGenerator(conf)
+    generator = TextParserGenerator(conf)
     generator.run()
     schema_module = generator.load_module()
     return schema_module
@@ -63,7 +63,7 @@ def test_rscad_control_relay(rscad_parser_module: ModuleType):
 
 def test_rscad_dynamic_load():
     conf: Schema = typed_from_yaml((Path(__file__).parent / 'parser-spec.yaml').read_text(), Schema)
-    generator = ParserGenerator(conf)
+    generator = TextParserGenerator(conf)
     generator.run()
     schema_module = generator.load_module()
 
