@@ -73,13 +73,13 @@ types:
                   _pieces:
                     value: self._text[1:-1].split(',')
                   x0:
-                    value: int(self.pieces[0])
+                    value: self._pieces[0]
                   y0:
-                    value: int(self.pieces[1])
+                    value: self._pieces[1]
                   x1:
-                    value: int(self.pieces[2])
+                    value: self._pieces[2]
                   y1:
-                    value: int(self.pieces[3])
+                    value: self._pieces[3]
               _IfType:
                 seq:
                   - id: _condition
@@ -87,10 +87,10 @@ types:
                   - id: _inner_statements
                     type: RSCADDefinition._SectionType._GraphicBodyType._StatementType
                     repeat: until
-                    repeat_until: self._inner_statements[-1].statement_type == 'EndIf'
+                    repeat_until: self._inner_statements[-1].statement_type.lower() == 'endif'
                 instances:
                   _breakpoints:
-                    value: "[0] + [idx for idx, x in enumerate(self._inner_statements) if x.statement_type in {'Else', 'ElseIf'}]"
+                    value: "[0] + [idx for idx, x in enumerate(self._inner_statements) if x.statement_type.lower() in {'else', 'elseif'}]"
                   _slices:
                     value: "[slice(*pair) for pair in itertools.pairwise(self._breakpoints)] + [slice(self._breakpoints[-1], None)]"
                   conditions:
@@ -98,7 +98,7 @@ types:
                   statement_blocks:
                     value: "[self._inner_statements[s] for s in self._slices]"
                   _inner_conditions:
-                    value: "[y for x in self._inner_statements if x.statement_type == 'If' for y in x.statement_body._total_conditions]"
+                    value: "[y for x in self._inner_statements if x.statement_type.lower() == 'if' for y in x.statement_body._total_conditions]"
                   _total_conditions:
                     value: "self.conditions + self._inner_conditions"
 #                  _initial_block_stop_index:
@@ -131,17 +131,17 @@ types:
                     delimiter: '(\\r\\n|(?<=\\)) )'
       _ParameterBodyType:
         seq:
-          - id: parameter_groups_raw
+          - id: _parameter_groups_raw
             delimiter: '(?<=\\r\\n) {2,}SECTION:'
             consume: false
             type: substream
             repeat: eos
         instances:
           group_count:
-            value: len(self.parameter_groups_raw)
+            value: len(self._parameter_groups_raw)
           parameter_groups:
             type: _ParameterGroupType
-            io: self.parameter_groups_raw[_]
+            io: self._parameter_groups_raw[_]
             repeat: expr
             repeat_expr: group_count
         types:
@@ -168,33 +168,33 @@ types:
                     delimiter: '[A-Za-z]'
                     consume: false
                   - id: name
-                    delimiter: ' {3,}'
+                    delimiter: '[ \t]{1,}'
                     delimiter_repeating: true
                   - id: description
-                    delimiter: '(?<=") {3,}'
+                    delimiter: '(?<=")[ \t]{1,}(?=")'
                     delimiter_repeating: true
                     cast: quoted
                   - id: unit
-                    delimiter: ' {3,}'
+                    delimiter: '(?<=")[ \t]{1,}(?!")'
                     delimiter_repeating: true
                     cast: quoted
                   - id: digit_count
-                    delimiter: ' {3,}'
+                    delimiter: '[ \t]{1,}'
                     delimiter_repeating: true
                     cast: uint
                   - id: parameter_type
-                    delimiter: ' {3,}'
+                    delimiter: '[ \t]{1,}'
                     delimiter_repeating: true
                   - id: default_value
-                    delimiter: '( {3,}|\r\n)'
+                    delimiter: '([ \t]{1,}|\r\n)'
                     delimiter_repeating: true
                   - id: min_value
-                    delimiter: '((?<=[^ ]) {3,}|\r\n)'
+                    delimiter: '((?<=[^ ])[ \t]{1,}|\r\n)'
                     delimiter_repeating: true
                     cast: strip
                     if_: self._last_delimiter != '\r\n'
                   - id: max_value
-                    delimiter: '( {3,}|\r\n)'
+                    delimiter: '([ \t]{1,}|\r\n)'
                     delimiter_repeating: true
                     if_: self._last_delimiter != '\r\n'
                   - id: condition

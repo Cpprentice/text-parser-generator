@@ -236,7 +236,7 @@ class RegularExpressionCacheMixin:
 
 class AsDictMixin:
     def as_dict(self):
-        ignored_keys = {'parent', 'encoding'}
+        ignored_keys = {'as_dict'}
         def _as_dict(x):
             if isinstance(x, AsDictMixin):
                 return x.as_dict()
@@ -244,8 +244,9 @@ class AsDictMixin:
                 return [_as_dict(y) for y in x]
             return x
         result = {}
-        for key, value in self.__dict__.items():
+        for key in dir(self):
             if not key.startswith('_') and key not in ignored_keys:
+                value = getattr(self, key)
                 result[key] = _as_dict(value)
         return result
 

@@ -43,7 +43,8 @@ classifiers = [
 ]
 dependencies = [
   "linkml-runtime~=1.8.0",  
-  "pydantic~=2.11.0"
+  "pydantic~=2.11.0",
+  "jinja2~=3.1.6"
 ]
 
 [project.optional-dependencies]
