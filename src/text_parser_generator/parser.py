@@ -279,6 +279,12 @@ class GeneratedTextParser(LookupMixin, RegularExpressionCacheMixin, AsDictMixin)
         self._last_delimiter = last_delimiter.decode(self._encoding)
         return data_bytes.decode(self._encoding)
 
+    def _parse_number_of_bytes(self, byte_count: int, decode=True) -> bytes | str:
+        parsed_bytes = self._io.read(byte_count)
+        if decode:
+            return parsed_bytes.decode(self._encoding)
+        return parsed_bytes
+
     def _parse_fixed_contents(self, fixed_contents: str) -> str:
         fixed_contents = fixed_contents.encode(self._encoding)
         parsed_contents = self._io.read(len(fixed_contents))

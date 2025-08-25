@@ -4,6 +4,8 @@
 #}
 {%- if step.contents -%}
 {% include 'step_action_contents.j2' %}
+{%- elif step.size is not none -%}
+{% include 'step_size.j2' %}
 {%- elif step.type == 'str' -%}
 {% include 'step_action_str.j2' %}
 {%- elif step.type == 'substream' -%}
