@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "text-parser-generator"
-version = "1.0.0"
+version = "2.0.1"
 description = "Allows the generation of a text parser from a YAML specification (inspired by kaitai struct)"
 readme = "README.md"
 requires-python = ">=3.10"
