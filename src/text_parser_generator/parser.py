@@ -44,6 +44,8 @@ class ByteQueue:
             self._source_slice = slice(0, None)
         self._source_pos = self._source_slice.start
         self._read_chunk_size = read_chunk_size
+        self._last_data = None
+        self._last_delimiter = None
 
     def __repr__(self):
         slice_string = ''
@@ -115,7 +117,8 @@ class ByteQueue:
         size = min(size, len(self))
         data = self._buffer[self._start:self._start + size]
         self._start += size
-        return bytes(data)
+        self._last_data = bytes(data)
+        return self._last_data
 
     @profile
     def _read_until_raw(self, delimiter: re.Pattern, consume: bool, delimiter_repeating: bool) -> re.Match:
@@ -153,11 +156,14 @@ class ByteQueue:
         if consume:
             self._start = old_start + match.end(0)
 
-        return bytes(data)
+        self._last_data = bytes(data)
+        # self._last_delimiter = bytes(self._buffer[old_start + match.start(0):old_start + match.end(0)])
+        self._last_delimiter = match.group(0)
+        return self._last_data
 
-    def read_until(self, delimiter: re.Pattern, consume: bool, delimiter_repeating: bool) -> bytes:
+    def read_until(self, delimiter: re.Pattern, consume: bool, delimiter_repeating: bool) -> tuple[bytes, bytes]:
         match = self._read_until_raw(delimiter, consume, delimiter_repeating)
-        return self._finalize_raw_read(match, consume)
+        return self._finalize_raw_read(match, consume), match.group(0)
 
     def create_sub_queue(
             self,
@@ -165,8 +171,9 @@ class ByteQueue:
             consume: bool,
             delimiter_repeating: bool,
             repeat_mode: str
-    ) -> Self:
+    ) -> tuple[Self, bytes | None]:
         match = None
+        delimiter_bytes = None
         try:
             match = self._read_until_raw(delimiter, consume, delimiter_repeating)
             end = match.start(0)
@@ -193,7 +200,8 @@ class ByteQueue:
         )
         if match is not None:
             self._finalize_raw_read(match, consume)
-        return new_byte_queue
+            delimiter_bytes = match.group(0)
+        return new_byte_queue, delimiter_bytes
 
 
 class LookupMixin:
@@ -267,7 +275,8 @@ class GeneratedTextParser(LookupMixin, RegularExpressionCacheMixin, AsDictMixin)
     ):
         delimiter = delimiter.encode(self._encoding)
         exp = self._compiled_expression(delimiter)
-        data_bytes = self._io.read_until(exp, consume, delimiter_repeating)
+        data_bytes, last_delimiter = self._io.read_until(exp, consume, delimiter_repeating)
+        self._last_delimiter = last_delimiter.decode(self._encoding)
         return data_bytes.decode(self._encoding)
 
     def _parse_fixed_contents(self, fixed_contents: str) -> str:
@@ -279,4 +288,6 @@ class GeneratedTextParser(LookupMixin, RegularExpressionCacheMixin, AsDictMixin)
     def _create_substream(self, delimiter: str, delimiter_repeating: bool, consume: bool, repeat_mode: str) -> ByteQueue:
         delimiter = delimiter.encode(self._encoding)
         exp = self._compiled_expression(delimiter)
-        return self._io.create_sub_queue(exp, consume, delimiter_repeating, repeat_mode)
+        sub_queue, last_delimiter = self._io.create_sub_queue(exp, consume, delimiter_repeating, repeat_mode)
+        self._last_delimiter = last_delimiter.decode(self._encoding) if last_delimiter is not None else None
+        return sub_queue
