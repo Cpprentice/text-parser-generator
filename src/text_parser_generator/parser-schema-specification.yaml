@@ -126,6 +126,10 @@ classes:
           - range: TypeEnum
           - pattern: "^(_?[a-zA-Z][a-zA-Z0-9_]*\\.)*_?[a-zA-Z][A-Za-z0-9_]*(\\(.+\\))?$"
           - range: TypeSwitch
+      type_parameters:
+        multivalued: true
+        inlined_as_list: true
+        range: Any
       repeat:
         range: RepeatEnum
       repeat_expr:

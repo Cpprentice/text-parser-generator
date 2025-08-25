@@ -131,6 +131,7 @@ class TextParserGenerator:
             data = {
                 'class_name': self.spec.id,
                 'fqdn': self.fqdn,
+                'params': self.spec.params or [],
                 **step_data,
                 'rendered_steps': rendered_slots,
                 'inners': [

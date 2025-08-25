@@ -1,7 +1,10 @@
 class {{ class_name }}(GeneratedTextParser):
 
-    def __init__(self, text_stream: io.TextIOBase, parent: GeneratedTextParser = None, encoding: str = None):
-        super().__init__(text_stream, parent, encoding)
+    def __init__(self, {{ params | map(attribute='id') | join(', ') }}{% if params %}, {% endif %}text_stream: io.TextIOBase, parent: GeneratedTextParser = None, encoding: str = None, **kwargs):
+        super().__init__(text_stream, parent, encoding, **kwargs)
+        {% for param in params %}
+        self.{{ param.id }} = {{ param.id }}
+        {%- endfor %}
         {% include 'step_lookup.j2' %}
         {% include 'step_defaults.j2' %}
         self._read()

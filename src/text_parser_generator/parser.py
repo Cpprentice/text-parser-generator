@@ -243,7 +243,7 @@ class AsDictMixin:
 
 
 class GeneratedTextParser(LookupMixin, RegularExpressionCacheMixin, AsDictMixin):
-    def __init__(self, base_stream: io.BufferedReader | ByteQueue, parent: Self = None, encoding: str = None):
+    def __init__(self, base_stream: io.BufferedReader | ByteQueue, parent: Self = None, encoding: str = None, **kwargs):
         if isinstance(base_stream, ByteQueue):
             self._io = base_stream
         else:
@@ -256,6 +256,8 @@ class GeneratedTextParser(LookupMixin, RegularExpressionCacheMixin, AsDictMixin)
         else:
             self._encoding = 'utf-8'
         self._last_delimiter: str | None = None
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
     def _parse_delimited_string(
             self,
