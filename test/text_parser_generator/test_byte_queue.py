@@ -24,26 +24,30 @@ def simple_repeating_delimiter_till_the_end():
 def test_byte_queue_simple(simple_stream):
     bq = ByteQueue(simple_stream)
 
-    test = bq.read_until(re.compile(b'\t'), consume=True, delimiter_repeating=False)
-    assert test == b'ABC'
+    test_data, test_delimiter = bq.read_until(re.compile(b'\t'), consume=True, delimiter_repeating=False)
+    assert test_data == b'ABC'
+    assert test_delimiter == b'\t'
 
 
 def test_byte_queue_resize_needed(simple_stream):
     bq = ByteQueue(simple_stream, 5, 10)
-    test = bq.read_until(re.compile(b'\t'), consume=True, delimiter_repeating=False)
-    assert test == b'ABC'
+    test_data, test_delimiter = bq.read_until(re.compile(b'\t'), consume=True, delimiter_repeating=False)
+    assert test_data == b'ABC'
+    assert test_delimiter == b'\t'
 
 
 def test_byte_queue_simple_delimiter_repeating(simple_repeating_delimiter_stream):
     bq = ByteQueue(simple_repeating_delimiter_stream)
-    test = bq.read_until(re.compile(b' +'), consume=True, delimiter_repeating=True)
-    assert test == b'ABC'
+    test_data, test_delimiter = bq.read_until(re.compile(b' +'), consume=True, delimiter_repeating=True)
+    assert test_data == b'ABC'
+    assert test_delimiter == b'     '
 
 
 def test_byte_queue_simple_delimiter_repeating_till_end(simple_repeating_delimiter_till_the_end):
     bq = ByteQueue(simple_repeating_delimiter_till_the_end)
-    test = bq.read_until(re.compile(b' +'), consume=True, delimiter_repeating=True)
-    assert test == b'START'
+    test_data, test_delimiter = bq.read_until(re.compile(b' +'), consume=True, delimiter_repeating=True)
+    assert test_data == b'START'
+    assert test_delimiter == b'     '
 
 
 def test_wrong_delimiter(simple_stream):

@@ -10,9 +10,8 @@ from typing import Any
 import pytest
 # from simpleeval import simple_eval
 
+from text_parser_generator import load_specification_from_yaml, TextParserGenerator
 from text_parser_generator.parser import re_search
-from text_parser_generator.generator import typed_from_yaml, TextParserGenerator
-from text_parser_generator.model import ParserSchemaSpecification
 
 
 def get_test_case_root_dir() -> Path:
@@ -32,7 +31,7 @@ def get_test_file_ids() -> list[str]:
 @pytest.fixture
 def rscad_parser_module() -> ModuleType:
     with tempfile.TemporaryDirectory() as directory:
-        conf: ParserSchemaSpecification = typed_from_yaml((Path(__file__).parent / 'parser-spec.yaml').read_text(), ParserSchemaSpecification)
+        conf = load_specification_from_yaml((Path(__file__).parent / 'parser-spec.yaml').read_text())
         generator = TextParserGenerator(conf, target_folder=Path(directory))
         generator.run()
         schema_module = generator.load_module()
@@ -40,7 +39,7 @@ def rscad_parser_module() -> ModuleType:
 
 
 def local_parser_module() -> ModuleType:
-    conf: ParserSchemaSpecification = typed_from_yaml((Path(__file__).parent / 'parser-spec.yaml').read_text(), ParserSchemaSpecification)
+    conf = load_specification_from_yaml((Path(__file__).parent / 'parser-spec.yaml').read_text())
     generator = TextParserGenerator(conf)
     generator.run()
     schema_module = generator.load_module()
@@ -62,7 +61,7 @@ def test_rscad_control_relay(rscad_parser_module: ModuleType):
 
 
 def test_rscad_dynamic_load():
-    conf: ParserSchemaSpecification = typed_from_yaml((Path(__file__).parent / 'parser-spec.yaml').read_text(), ParserSchemaSpecification)
+    conf = load_specification_from_yaml((Path(__file__).parent / 'parser-spec.yaml').read_text())
     generator = TextParserGenerator(conf)
     generator.run()
     schema_module = generator.load_module()

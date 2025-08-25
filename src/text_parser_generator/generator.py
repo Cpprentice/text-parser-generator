@@ -175,13 +175,13 @@ def fix_instances_schema(schema: ParserSchemaSpecification):
 
 
 AnyYAMLRoot = TypeVar('AnyYAMLRoot', bound=YAMLRoot)
-def typed_from_yaml(source: Any, _t: Generic[AnyYAMLRoot]) -> AnyYAMLRoot:
+def _typed_from_yaml(source: Any, _t: Generic[AnyYAMLRoot]) -> AnyYAMLRoot:
     result = cast(_t, from_yaml(source, _t))
     return result
 
 
 def load_specification_from_yaml(source: Any) -> ParserSchemaSpecification:
-    spec = typed_from_yaml(source, ParserSchemaSpecification)
+    spec = _typed_from_yaml(source, ParserSchemaSpecification)
     fix_types_schema(spec)
     fix_instances_schema(spec)
     return spec
