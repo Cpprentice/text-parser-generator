@@ -5,12 +5,12 @@ from pathlib import Path
 from linkml_runtime.loaders import yaml_loader
 
 from text_parser_generator.generator import typed_from_yaml, TextParserGenerator
-from text_parser_generator.model import Schema, TypeSpec, Attribute
+from text_parser_generator.model import ParserSchemaSpecification, TypeSpec, Attribute
 
 
 def test_ig2():
     # conf = yaml_loader.load((Path(__file__).parent / 'schema.yaml').read_text(), Schema)
-    conf: Schema = typed_from_yaml((Path(__file__).parent / 'schema.yaml').read_text(), Schema)
+    conf: ParserSchemaSpecification = typed_from_yaml((Path(__file__).parent / 'schema.yaml').read_text(), ParserSchemaSpecification)
     generator = TextParserGenerator(conf)
     generator.run()
     schema_module = generator.load_module()

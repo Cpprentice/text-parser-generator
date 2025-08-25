@@ -8,11 +8,11 @@ from jinja2 import Template, Environment, FileSystemLoader
 from linkml_runtime.utils.yamlutils import from_yaml, YAMLRoot
 from pydantic import RootModel
 
-from text_parser_generator.model import ParserSchemaSpecification, Schema, TypeSpec, Attribute
+from text_parser_generator.model import ParserSchemaSpecification, TypeSpec, Attribute
 
 
 class TextParserGenerator:
-    def __init__(self, schema: Schema, target_folder = Path.cwd()):
+    def __init__(self, schema: ParserSchemaSpecification, target_folder = Path.cwd()):
         self.schema = schema
         self.target_folder = target_folder
         self.default_type = schema.meta.default_type
@@ -47,7 +47,7 @@ class TextParserGenerator:
         def __init__(
                 self,
                 base,
-                schema: TypeSpec | Schema,
+                schema: TypeSpec | ParserSchemaSpecification,
                 class_template: Template,
                 slot_template: Template,
                 instance_template: Template,
@@ -147,7 +147,7 @@ class TextParserGenerator:
             return self.class_template.render(data)
 
 
-def fix_types_schema(schema: Schema):
+def fix_types_schema(schema: ParserSchemaSpecification):
 
     def traverse(obj):
         if hasattr(obj, 'types') and obj.types is not None:
@@ -160,7 +160,7 @@ def fix_types_schema(schema: Schema):
 
     traverse(schema)
 
-def fix_instances_schema(schema: Schema):
+def fix_instances_schema(schema: ParserSchemaSpecification):
     def traverse(obj):
         if hasattr(obj, 'instances') and obj.instances is not None:
             obj.instances = {
